@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Browse Films — CineLog{% endblock %}
+{% block page_title %}Browse Films{% endblock %}
+
+{% block content %}
+<div class="space-y-5" x-data="{ addModal: false, selectedMovie: null }">
+
+  <!-- Filters -->
+  <div class="flex items-center gap-3">
+    <form method="get" class="flex items-center gap-3 flex-1">
+      <input name="q" value="{{ q }}" placeholder="Search by title…"
+             class="bg-[#111118] border border-[#1e1e2a] rounded-lg px-4 py-2 text-sm text-[#c8c8d8]
+                    placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] w-64 transition-colors"/>
+
+      <select name="genre"
+              class="bg-[#111118] border border-[#1e1e2a] rounded-lg px-3 py-2 text-sm text-[#c8c8d8]
+                     focus:outline-none focus:border-[#f59e0b66] transition-colors">
+        <option value="">All Genres</option>
+        {% for g in genres %}
+          <option value="{{ g.genre_name }}" {% if g.genre_name == selected_genre %}selected{% endif %}>
+            {{ g.genre_name }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <button type="submit"
+              class="bg-[#f59e0b] hover:bg-[#d97706] text-black text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+        Search
+      </button>
+      {% if q or selected_genre %}
+      <a href="{{ url_for('movies.browse') }}"
+         class="text-sm text-[#4a4a5e] hover:text-[#f59e0b] transition-colors">Clear</a>
+      {% endif %}
+    </form>
+
+    <a href="{{ url_for('movies.add_movie') }}"
+       class="flex items-center gap-2 text-sm text-[#4a4a5e] hover:text-[#f59e0b] transition-colors border border-[#1e1e2a] hover:border-[#f59e0b44] rounded-lg px-3 py-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Film
+    </a>
+  </div>
+
+  <!-- Results count -->
+  <p class="text-xs text-[#4a4a5e]">{{ movies | length }} film{{ 's' if movies|length != 1 }}</p>
+
+  <!-- Movie grid -->
+  {% if movies %}
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    {% for m in movies %}
+    <div class="poster-hover bg-[#111118] border border-[#1e1e2a] rounded-xl overflow-hidden group">
+      <!-- Poster -->
+      <a href="{{ url_for('movies.movie_detail', mid=m.movie_id) }}">
+        <div class="aspect-[2/3] bg-[#16161f] flex items-center justify-center overflow-hidden">
+          {% if m.poster_url %}
+            <img src="{{ m.poster_url }}" alt="{{ m.title }}"
+                 class="w-full h-full object-cover" onerror="this.style.display='none'"/>
+          {% else %}
+          <div class="flex flex-col items-center gap-2 text-[#4a4a5e] p-4">
+            <span class="text-4xl">🎬</span>
+            <span class="text-xs text-center font-medium">{{ m.title[:20] }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </a>
+
+      <!-- Info -->
+      <div class="p-3">
+        <a href="{{ url_for('movies.movie_detail', mid=m.movie_id) }}"
+           class="text-sm font-medium text-[#f0f0f8] hover:text-[#f59e0b] transition-colors line-clamp-1 block">
+          {{ m.title }}
+        </a>
+        <p class="text-xs text-[#4a4a5e] mt-0.5">{{ m.release_year or '—' }}</p>
+
+        <!-- Rating + status -->
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-xs text-[#f59e0b]">
+            {% if m.avg_score %}⭐ {{ m.avg_score }}{% else %}No ratings{% endif %}
+          </span>
+          {% if m.my_status %}
+          <span class="text-xs px-1.5 py-0.5 rounded
+            {% if m.my_status == 'watched' %}badge-watched
+            {% elif m.my_status == 'want_to_watch' %}badge-want
+            {% else %}badge-dropped{% endif %}">
+            {{ m.my_status.replace('_',' ')[:7] }}
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Quick add button -->
+        <form action="{{ url_for('watchlist.add') }}" method="post" class="mt-2">
+          <input type="hidden" name="movie_id" value="{{ m.movie_id }}"/>
+          <select name="status"
+                  class="w-full bg-[#16161f] border border-[#1e1e2a] text-[#4a4a5e] text-xs rounded px-2 py-1
+                         focus:outline-none focus:border-[#f59e0b44] mb-1">
+            <option value="want_to_watch">Want to Watch</option>
+            <option value="watched">Watched</option>
+            <option value="dropped">Dropped</option>
+          </select>
+          <button type="submit"
+                  class="w-full bg-[#16161f] hover:bg-[#f59e0b22] border border-[#1e1e2a] hover:border-[#f59e0b44]
+                         text-[#4a4a5e] hover:text-[#f59e0b] text-xs py-1 rounded transition-colors">
+            + Watchlist
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-20">
+    <span class="text-5xl block mb-3">🎬</span>
+    <p class="text-[#4a4a5e]">No films found.
+      {% if q or selected_genre %}
+        <a href="{{ url_for('movies.browse') }}" class="text-[#f59e0b] hover:underline">Clear filters</a>
+      {% else %}
+        <a href="{{ url_for('movies.add_movie') }}" class="text-[#f59e0b] hover:underline">Add the first one</a>.
+      {% endif %}
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

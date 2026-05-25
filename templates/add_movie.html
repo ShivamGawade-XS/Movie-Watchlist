@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Add Film — CineLog{% endblock %}
+{% block page_title %}Add Film{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+
+  <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-6">
+    <h2 class="text-[#f0f0f8] font-semibold mb-5">Add a new film to the database</h2>
+
+    <form method="post" class="space-y-4">
+
+      <div>
+        <label class="block text-xs text-[#4a4a5e] uppercase tracking-wider mb-1.5">Title *</label>
+        <input name="title" type="text" required
+               class="w-full bg-[#16161f] border border-[#1e1e2a] rounded-lg px-4 py-2.5 text-sm text-[#c8c8d8]
+                      placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] transition-colors"
+               placeholder="e.g. The Godfather"/>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-[#4a4a5e] uppercase tracking-wider mb-1.5">Release Year</label>
+          <input name="release_year" type="number" min="1888" max="2030"
+                 class="w-full bg-[#16161f] border border-[#1e1e2a] rounded-lg px-4 py-2.5 text-sm text-[#c8c8d8]
+                        placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] transition-colors"
+                 placeholder="2024"/>
+        </div>
+        <div>
+          <label class="block text-xs text-[#4a4a5e] uppercase tracking-wider mb-1.5">Duration (mins)</label>
+          <input name="duration_mins" type="number" min="1"
+                 class="w-full bg-[#16161f] border border-[#1e1e2a] rounded-lg px-4 py-2.5 text-sm text-[#c8c8d8]
+                        placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] transition-colors"
+                 placeholder="120"/>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-[#4a4a5e] uppercase tracking-wider mb-1.5">Language</label>
+        <input name="language" type="text"
+               class="w-full bg-[#16161f] border border-[#1e1e2a] rounded-lg px-4 py-2.5 text-sm text-[#c8c8d8]
+                      placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] transition-colors"
+               placeholder="English"/>
+      </div>
+
+      <div>
+        <label class="block text-xs text-[#4a4a5e] uppercase tracking-wider mb-1.5">Poster URL</label>
+        <input name="poster_url" type="url"
+               class="w-full bg-[#16161f] border border-[#1e1e2a] rounded-lg px-4 py-2.5 text-sm text-[#c8c8d8]
+                      placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] transition-colors"
+               placeholder="https://…"/>
+      </div>
+
+      <!-- Genre multi-select -->
+      <div>
+        <label class="block text-xs text-[#4a4a5e] uppercase tracking-wider mb-2">Genres</label>
+        <div class="grid grid-cols-3 gap-2">
+          {% for g in genres %}
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" name="genres" value="{{ g.genre_id }}"
+                   class="w-3.5 h-3.5 accent-[#f59e0b]"/>
+            <span class="text-sm text-[#c8c8d8] group-hover:text-[#f0f0f8] transition-colors">
+              {{ g.genre_name }}
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+                class="bg-[#f59e0b] hover:bg-[#d97706] text-black font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors">
+          Add Film
+        </button>
+        <a href="{{ url_for('movies.browse') }}"
+           class="bg-[#16161f] border border-[#1e1e2a] text-[#c8c8d8] hover:text-[#f0f0f8]
+                  px-5 py-2.5 rounded-lg text-sm transition-colors">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

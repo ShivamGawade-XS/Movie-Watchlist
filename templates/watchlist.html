@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}My Watchlist — CineLog{% endblock %}
+{% block page_title %}My Watchlist{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+
+  <!-- Status filter tabs -->
+  <div class="flex items-center gap-1 border-b border-[#1e1e2a] pb-0">
+    {% set tabs = [
+      ('all',           'All'),
+      ('want_to_watch', 'Want to Watch'),
+      ('watched',       'Watched'),
+      ('dropped',       'Dropped'),
+    ] %}
+    {% for val, label in tabs %}
+    <a href="{{ url_for('watchlist.my_watchlist', status=val) }}"
+       class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px
+              {% if status == val %}border-[#f59e0b] text-[#f59e0b]
+              {% else %}border-transparent text-[#4a4a5e] hover:text-[#c8c8d8]{% endif %}">
+      {{ label }}
+      {% if val == 'all' %}
+        <span class="ml-1 text-xs bg-[#1e1e2a] px-1.5 py-0.5 rounded">{{ (count_map.values()|sum) }}</span>
+      {% elif val in count_map %}
+        <span class="ml-1 text-xs bg-[#1e1e2a] px-1.5 py-0.5 rounded">{{ count_map[val] }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Table -->
+  {% if items %}
+  <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[#1e1e2a]">
+          <th class="text-left text-xs text-[#4a4a5e] uppercase tracking-wider px-5 py-3">Film</th>
+          <th class="text-left text-xs text-[#4a4a5e] uppercase tracking-wider px-5 py-3">Year</th>
+          <th class="text-left text-xs text-[#4a4a5e] uppercase tracking-wider px-5 py-3">My Score</th>
+          <th class="text-left text-xs text-[#4a4a5e] uppercase tracking-wider px-5 py-3">Status</th>
+          <th class="text-left text-xs text-[#4a4a5e] uppercase tracking-wider px-5 py-3">Added</th>
+          <th class="px-5 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr class="border-b border-[#1e1e2a] last:border-0 hover:bg-[#16161f] transition-colors"
+            x-data="{ open: false }">
+          <td class="px-5 py-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-11 bg-[#16161f] rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
+                {% if item.poster_url %}
+                  <img src="{{ item.poster_url }}" class="w-full h-full object-cover"
+                       onerror="this.style.display='none'; this.nextSibling.style.display='flex'"/>
+                  <span style="display:none" class="text-[#4a4a5e]">🎬</span>
+                {% else %}
+                  <span class="text-[#4a4a5e]">🎬</span>
+                {% endif %}
+              </div>
+              <div>
+                <a href="{{ url_for('movies.movie_detail', mid=item.movie_id) }}"
+                   class="text-sm font-medium text-[#f0f0f8] hover:text-[#f59e0b] transition-colors">
+                  {{ item.title }}
+                </a>
+                <p class="text-xs text-[#4a4a5e]">{{ item.duration_mins or '—' }} min</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3 text-sm text-[#c8c8d8]">{{ item.release_year or '—' }}</td>
+          <td class="px-5 py-3 text-sm">
+            {% if item.my_score %}
+              <span class="text-[#f59e0b]">⭐ {{ item.my_score }}/10</span>
+            {% else %}
+              <span class="text-[#4a4a5e]">—</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3">
+            <span class="text-xs px-2 py-0.5 rounded-full
+              {% if item.status == 'watched' %}badge-watched
+              {% elif item.status == 'want_to_watch' %}badge-want
+              {% else %}badge-dropped{% endif %}">
+              {{ item.status.replace('_', ' ').title() }}
+            </span>
+          </td>
+          <td class="px-5 py-3 text-xs text-[#4a4a5e]">{{ item.added_at.strftime('%b %d') }}</td>
+          <td class="px-5 py-3">
+            <div class="flex items-center gap-2">
+              <!-- Quick status change -->
+              <div x-data="{ open: false }" class="relative">
+                <button @click="open=!open" class="text-xs text-[#4a4a5e] hover:text-[#f59e0b] transition-colors">
+                  Edit
+                </button>
+                <div x-show="open" @click.outside="open=false"
+                     class="absolute right-0 top-6 z-10 bg-[#16161f] border border-[#1e1e2a] rounded-lg shadow-xl w-40">
+                  {% for opt in ['watched','want_to_watch','dropped'] %}
+                  <form action="{{ url_for('watchlist.update_status') }}" method="post">
+                    <input type="hidden" name="movie_id" value="{{ item.movie_id }}"/>
+                    <input type="hidden" name="status"   value="{{ opt }}"/>
+                    <button type="submit"
+                            class="w-full text-left text-xs px-3 py-2 text-[#c8c8d8] hover:bg-[#1e1e2a] hover:text-[#f59e0b] transition-colors
+                                   {% if item.status == opt %}text-[#f59e0b]{% endif %}">
+                      {{ opt.replace('_',' ').title() }}
+                    </button>
+                  </form>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Remove -->
+              <form action="{{ url_for('watchlist.remove', wl_id=item.wl_id) }}" method="post"
+                    onsubmit="return confirm('Remove from watchlist?')">
+                <button type="submit" class="text-xs text-[#4a4a5e] hover:text-red-400 transition-colors">
+                  ✕
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="text-center py-20">
+    <span class="text-5xl block mb-3">📋</span>
+    <p class="text-[#4a4a5e] text-sm">
+      No films in this list yet.
+      <a href="{{ url_for('movies.browse') }}" class="text-[#f59e0b] hover:underline">Browse films</a>.
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

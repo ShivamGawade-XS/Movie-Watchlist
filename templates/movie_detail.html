@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}{{ movie.title }} — CineLog{% endblock %}
+{% block page_title %}Film Detail{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6" x-data="{ ratingVal: {{ my_rating.score if my_rating else 0 }} }">
+
+  <!-- Movie header -->
+  <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl overflow-hidden">
+    <div class="flex gap-6 p-6">
+      <!-- Poster -->
+      <div class="w-36 flex-shrink-0">
+        <div class="aspect-[2/3] bg-[#16161f] rounded-lg overflow-hidden flex items-center justify-center">
+          {% if movie.poster_url %}
+            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}"
+                 class="w-full h-full object-cover" onerror="this.style.display='none'"/>
+          {% else %}
+            <span class="text-5xl">🎬</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div class="flex-1 min-w-0">
+        <h2 class="font-display text-4xl text-[#f0f0f8] tracking-wide leading-none">{{ movie.title }}</h2>
+        <div class="flex items-center gap-4 mt-2 text-sm text-[#4a4a5e]">
+          {% if movie.release_year %}<span>{{ movie.release_year }}</span>{% endif %}
+          {% if movie.duration_mins %}<span>{{ movie.duration_mins }} min</span>{% endif %}
+          {% if movie.language %}<span>{{ movie.language }}</span>{% endif %}
+        </div>
+
+        <!-- Genres -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          {% for g in genres %}
+          <span class="text-xs px-2 py-0.5 bg-[#16161f] border border-[#1e1e2a] rounded-full text-[#c8c8d8]">
+            {{ g.genre_name }}
+          </span>
+          {% endfor %}
+        </div>
+
+        <!-- Average score -->
+        <div class="flex items-center gap-2 mt-4">
+          <span class="text-3xl font-bold text-[#f59e0b]">{{ movie.avg_score or '—' }}</span>
+          <div>
+            <p class="text-xs text-[#4a4a5e]">Average score</p>
+            <p class="text-xs text-[#4a4a5e]">{{ movie.rating_count }} rating{{ 's' if movie.rating_count != 1 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions row -->
+  <div class="grid grid-cols-2 gap-4">
+
+    <!-- Watchlist status -->
+    <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5">
+      <h3 class="text-sm font-medium text-[#f0f0f8] mb-3">My Watchlist Status</h3>
+      <form action="{{ url_for('watchlist.add') }}" method="post" class="flex items-center gap-3">
+        <input type="hidden" name="movie_id" value="{{ movie.movie_id }}"/>
+        <select name="status"
+                class="flex-1 bg-[#16161f] border border-[#1e1e2a] rounded-lg px-3 py-2 text-sm text-[#c8c8d8]
+                       focus:outline-none focus:border-[#f59e0b66] transition-colors">
+          <option value="want_to_watch" {% if my_status and my_status.status=='want_to_watch' %}selected{% endif %}>
+            Want to Watch
+          </option>
+          <option value="watched" {% if my_status and my_status.status=='watched' %}selected{% endif %}>
+            Watched
+          </option>
+          <option value="dropped" {% if my_status and my_status.status=='dropped' %}selected{% endif %}>
+            Dropped
+          </option>
+        </select>
+        <button type="submit"
+                class="bg-[#f59e0b] hover:bg-[#d97706] text-black text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          Save
+        </button>
+      </form>
+      {% if my_status %}
+      <p class="text-xs text-[#4a4a5e] mt-2">
+        Current: <span class="text-[#f59e0b]">{{ my_status.status.replace('_',' ').title() }}</span>
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- Rate -->
+    <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5">
+      <h3 class="text-sm font-medium text-[#f0f0f8] mb-3">My Rating</h3>
+      <form action="{{ url_for('movies.rate') }}" method="post" class="space-y-3">
+        <input type="hidden" name="movie_id" value="{{ movie.movie_id }}"/>
+        <div class="flex items-center gap-1">
+          {% for i in range(1, 11) %}
+          <label class="cursor-pointer">
+            <input type="radio" name="score" value="{{ i }}" class="hidden"
+                   {% if my_rating and my_rating.score == i %}checked{% endif %}/>
+            <span class="text-lg hover:text-[#f59e0b] transition-colors
+                         {% if my_rating and my_rating.score >= i %}text-[#f59e0b]{% else %}text-[#2a2a3a]{% endif %}">
+              ★
+            </span>
+          </label>
+          {% endfor %}
+          <span class="text-xs text-[#4a4a5e] ml-2">
+            {% if my_rating %}{{ my_rating.score }}/10{% else %}Not rated{% endif %}
+          </span>
+        </div>
+        <button type="submit"
+                class="bg-[#16161f] hover:bg-[#f59e0b22] border border-[#1e1e2a] hover:border-[#f59e0b44]
+                       text-[#c8c8d8] hover:text-[#f59e0b] text-sm px-4 py-1.5 rounded-lg transition-colors">
+          Submit Rating
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reviews section -->
+  <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5" x-data="{ showForm: false }">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-medium text-[#f0f0f8]">Reviews ({{ reviews | length }})</h3>
+      <button @click="showForm = !showForm"
+              class="text-xs text-[#f59e0b] hover:underline">
+        + Write a review
+      </button>
+    </div>
+
+    <!-- Review form (Alpine toggle) -->
+    <div x-show="showForm" x-transition class="mb-5">
+      <form action="{{ url_for('movies.review') }}" method="post" class="space-y-3">
+        <input type="hidden" name="movie_id" value="{{ movie.movie_id }}"/>
+        <textarea name="review_text" rows="3" placeholder="Share your thoughts on this film…"
+                  class="w-full bg-[#16161f] border border-[#1e1e2a] rounded-lg px-4 py-3 text-sm text-[#c8c8d8]
+                         placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b66] resize-none transition-colors"></textarea>
+        <button type="submit"
+                class="bg-[#f59e0b] hover:bg-[#d97706] text-black text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          Post Review
+        </button>
+      </form>
+    </div>
+
+    <!-- Review list -->
+    {% if reviews %}
+    <div class="space-y-4">
+      {% for rv in reviews %}
+      <div class="border-b border-[#1e1e2a] pb-4 last:border-0 last:pb-0">
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="w-6 h-6 rounded-full bg-[#f59e0b22] border border-[#f59e0b44] flex items-center justify-center">
+            <span class="text-[#f59e0b] text-xs font-bold">{{ rv.username[0]|upper }}</span>
+          </div>
+          <span class="text-sm font-medium text-[#f0f0f8]">{{ rv.username }}</span>
+          <span class="text-xs text-[#4a4a5e]">· {{ rv.created_at.strftime('%b %d, %Y') }}</span>
+        </div>
+        <p class="text-sm text-[#c8c8d8] leading-relaxed">{{ rv.review_text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-[#4a4a5e] text-center py-6">No reviews yet. Be the first!</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

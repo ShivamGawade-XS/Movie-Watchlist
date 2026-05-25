@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}CineLog{% endblock %}</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cinema: {
+              bg:       '#0a0a0f',
+              surface:  '#111118',
+              card:     '#16161f',
+              border:   '#1e1e2a',
+              amber:    '#f59e0b',
+              'amber-dim': '#92610a',
+              muted:    '#4a4a5e',
+              text:     '#c8c8d8',
+              bright:   '#f0f0f8',
+            }
+          },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body:    ['"DM Sans"',    'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .font-display { font-family: 'Bebas Neue', sans-serif; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a0f; }
+    ::-webkit-scrollbar-thumb { background: #f59e0b44; border-radius: 2px; }
+    .nav-link.active { color: #f59e0b; border-left: 2px solid #f59e0b; background: #f59e0b11; }
+    .badge-watched      { background:#064e3b; color:#6ee7b7; }
+    .badge-want         { background:#1e3a5f; color:#93c5fd; }
+    .badge-dropped      { background:#3b1111; color:#fca5a5; }
+    .toast-enter        { animation: slideIn .3s ease; }
+    @keyframes slideIn  { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    .film-grain::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    .poster-hover { transition: transform .2s ease, box-shadow .2s ease; }
+    .poster-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 40px #f59e0b22; }
+    .star-btn { cursor:pointer; transition: color .15s; }
+    .star-btn:hover ~ .star-btn,
+    .star-btn:hover { color: #f59e0b !important; }
+  </style>
+</head>
+
+<body class="film-grain bg-[#0a0a0f] text-[#c8c8d8] h-full font-body" x-data="{ sidebarOpen: true }">
+
+{% if session.user_id %}
+<!-- ============================================================
+     LAYOUT: Sidebar + Main
+     ============================================================ -->
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-56 flex-shrink-0 bg-[#111118] border-r border-[#1e1e2a] flex flex-col">
+    <!-- Logo -->
+    <div class="px-5 py-5 border-b border-[#1e1e2a]">
+      <span class="font-display text-3xl text-[#f59e0b] tracking-widest">CINELOG</span>
+      <p class="text-xs text-[#4a4a5e] mt-0.5">Movie Tracker</p>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-2 py-4 space-y-0.5">
+
+      <a href="{{ url_for('movies.dashboard') }}"
+         class="nav-link {% if request.endpoint == 'movies.dashboard' %}active{% endif %}
+                flex items-center gap-3 px-3 py-2.5 rounded text-sm text-[#c8c8d8] hover:text-[#f59e0b] hover:bg-[#f59e0b11] transition-colors border-l-2 border-transparent">
+        <!-- home icon -->
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        Dashboard
+      </a>
+
+      <a href="{{ url_for('movies.browse') }}"
+         class="nav-link {% if request.endpoint == 'movies.browse' %}active{% endif %}
+                flex items-center gap-3 px-3 py-2.5 rounded text-sm text-[#c8c8d8] hover:text-[#f59e0b] hover:bg-[#f59e0b11] transition-colors border-l-2 border-transparent">
+        <!-- film icon -->
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"/>
+        </svg>
+        Browse Films
+      </a>
+
+      <a href="{{ url_for('watchlist.my_watchlist') }}"
+         class="nav-link {% if request.endpoint == 'watchlist.my_watchlist' %}active{% endif %}
+                flex items-center gap-3 px-3 py-2.5 rounded text-sm text-[#c8c8d8] hover:text-[#f59e0b] hover:bg-[#f59e0b11] transition-colors border-l-2 border-transparent">
+        <!-- bookmark icon -->
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+        </svg>
+        My Watchlist
+      </a>
+
+      <a href="{{ url_for('movies.leaderboard') }}"
+         class="nav-link {% if request.endpoint == 'movies.leaderboard' %}active{% endif %}
+                flex items-center gap-3 px-3 py-2.5 rounded text-sm text-[#c8c8d8] hover:text-[#f59e0b] hover:bg-[#f59e0b11] transition-colors border-l-2 border-transparent">
+        <!-- trophy icon -->
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+        </svg>
+        Leaderboard
+      </a>
+
+      <a href="{{ url_for('movies.add_movie') }}"
+         class="nav-link {% if request.endpoint == 'movies.add_movie' %}active{% endif %}
+                flex items-center gap-3 px-3 py-2.5 rounded text-sm text-[#c8c8d8] hover:text-[#f59e0b] hover:bg-[#f59e0b11] transition-colors border-l-2 border-transparent">
+        <!-- plus icon -->
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Film
+      </a>
+    </nav>
+
+    <!-- User footer -->
+    <div class="px-4 py-4 border-t border-[#1e1e2a]">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-[#f59e0b22] border border-[#f59e0b44] flex items-center justify-center">
+          <span class="text-[#f59e0b] text-xs font-bold">{{ session.username[0]|upper }}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-medium text-[#f0f0f8] truncate">{{ session.username }}</p>
+          <a href="{{ url_for('auth.logout') }}" class="text-xs text-[#4a4a5e] hover:text-[#f59e0b] transition-colors">Sign out</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- TOPBAR -->
+    <header class="flex-shrink-0 h-14 bg-[#111118] border-b border-[#1e1e2a] flex items-center justify-between px-6">
+      <h1 class="font-display text-xl tracking-wider text-[#f0f0f8]">{% block page_title %}{% endblock %}</h1>
+      <div class="flex items-center gap-4">
+        <!-- search quick link -->
+        <form action="{{ url_for('movies.browse') }}" method="get" class="flex items-center">
+          <input name="q" placeholder="Search films…"
+                 class="bg-[#16161f] border border-[#1e1e2a] rounded px-3 py-1.5 text-xs text-[#c8c8d8] placeholder-[#4a4a5e] focus:outline-none focus:border-[#f59e0b44] w-44 transition-colors"/>
+        </form>
+        <div class="w-8 h-8 rounded-full bg-[#f59e0b22] border border-[#f59e0b44] flex items-center justify-center">
+          <span class="text-[#f59e0b] text-xs font-bold">{{ session.username[0]|upper }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="fixed top-4 right-4 z-50 space-y-2" x-data="{ show: true }" x-show="show">
+          {% for cat, msg in messages %}
+          <div class="toast-enter flex items-center gap-3 px-4 py-3 rounded-lg text-sm shadow-xl
+                      {% if cat == 'error' %}bg-red-950 border border-red-800 text-red-300
+                      {% else %}bg-emerald-950 border border-emerald-800 text-emerald-300{% endif %}">
+            {% if cat == 'error' %}
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            {% else %}
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            {% endif %}
+            {{ msg }}
+            <button @click="show=false" class="ml-2 opacity-60 hover:opacity-100">✕</button>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- PAGE CONTENT -->
+    <main class="flex-1 overflow-y-auto p-6">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+{% else %}
+<!-- Non-authenticated pages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="fixed top-4 right-4 z-50 space-y-2">
+      {% for cat, msg in messages %}
+      <div class="toast-enter flex items-center gap-3 px-4 py-3 rounded-lg text-sm shadow-xl
+                  {% if cat == 'error' %}bg-red-950 border border-red-800 text-red-300
+                  {% else %}bg-emerald-950 border border-emerald-800 text-emerald-300{% endif %}">
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+{% endif %}
+
+</body>
+</html>

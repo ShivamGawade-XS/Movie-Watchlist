@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — CineLog{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Greeting -->
+  <div>
+    <h2 class="text-2xl font-semibold text-[#f0f0f8]">
+      Hello, <span class="text-[#f59e0b]">{{ session.username }}</span> 👋
+    </h2>
+    <p class="text-sm text-[#4a4a5e] mt-0.5">Here's your film universe at a glance.</p>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="grid grid-cols-4 gap-4">
+    {% set cards = [
+      ('Films Watched',    stats.total_watched,              'text-[#f59e0b]',  '🎬'),
+      ('Avg Rating',       (stats.avg_rating or '—'),        'text-emerald-400', '⭐'),
+      ('Hours Watched',    (stats.total_hours | round(1)),   'text-sky-400',    '⏱️'),
+      ('Fav Genre',        (stats.fav_genre or '—'),         'text-purple-400', '🎭'),
+    ] %}
+    {% for label, val, color, icon in cards %}
+    <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5 hover:border-[#2a2a3a] transition-colors">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs text-[#4a4a5e] uppercase tracking-wider">{{ label }}</p>
+          <p class="text-2xl font-bold {{ color }} mt-1.5">{{ val }}</p>
+        </div>
+        <span class="text-2xl opacity-60">{{ icon }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="grid grid-cols-2 gap-4">
+
+    <!-- Monthly watch bar chart -->
+    <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5">
+      <h3 class="text-sm font-medium text-[#f0f0f8] mb-4">Monthly Watch Activity</h3>
+      {% if monthly %}
+      <canvas id="monthlyChart" height="180"></canvas>
+      {% else %}
+      <div class="h-44 flex items-center justify-center text-[#4a4a5e] text-sm">
+        No watch history yet.
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Genre pie chart -->
+    <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5">
+      <h3 class="text-sm font-medium text-[#f0f0f8] mb-4">Genre Breakdown</h3>
+      {% if genre_data %}
+      <div class="flex items-center gap-4">
+        <canvas id="genreChart" width="160" height="160" style="max-width:160px;max-height:160px;"></canvas>
+        <div class="flex-1 space-y-1.5">
+          {% for row in genre_data %}
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-[#c8c8d8]">{{ row.genre_name }}</span>
+            <span class="text-[#4a4a5e]">{{ row.cnt }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="h-44 flex items-center justify-center text-[#4a4a5e] text-sm">
+        Watch some films to see genres.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RECENT ACTIVITY -->
+  <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-medium text-[#f0f0f8]">Recent Activity</h3>
+      <a href="{{ url_for('watchlist.my_watchlist') }}" class="text-xs text-[#f59e0b] hover:underline">View all →</a>
+    </div>
+
+    {% if recent %}
+    <div class="space-y-2">
+      {% for item in recent %}
+      <div class="flex items-center gap-4 py-2 border-b border-[#1e1e2a] last:border-0">
+        <div class="w-8 h-10 bg-[#16161f] rounded flex items-center justify-center text-[#4a4a5e] text-lg flex-shrink-0">🎬</div>
+        <div class="flex-1 min-w-0">
+          <a href="{{ url_for('movies.movie_detail', mid=item.movie_id) }}"
+             class="text-sm font-medium text-[#f0f0f8] hover:text-[#f59e0b] truncate block transition-colors">
+            {{ item.title }}
+          </a>
+          <p class="text-xs text-[#4a4a5e]">{{ item.added_at.strftime('%b %d, %Y') }}</p>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded-full flex-shrink-0
+          {% if item.status == 'watched' %}badge-watched
+          {% elif item.status == 'want_to_watch' %}badge-want
+          {% else %}badge-dropped{% endif %}">
+          {{ item.status.replace('_', ' ').title() }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-[#4a4a5e] text-center py-8">
+      No activity yet.
+      <a href="{{ url_for('movies.browse') }}" class="text-[#f59e0b] hover:underline">Browse films</a> to get started.
+    </p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Chart.js scripts -->
+<script>
+const chartDefaults = {
+  color: '#4a4a5e',
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color:'#4a4a5e', font:{ size:10 } }, grid: { color:'#1e1e2a' } },
+    y: { ticks: { color:'#4a4a5e', font:{ size:10 } }, grid: { color:'#1e1e2a' } }
+  }
+};
+
+{% if monthly %}
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ monthly | map(attribute='month_label') | list | tojson }},
+    datasets: [{
+      data:  {{ monthly | map(attribute='cnt') | list | tojson }},
+      backgroundColor: '#f59e0b33',
+      borderColor:     '#f59e0b',
+      borderWidth: 1.5,
+      borderRadius: 4,
+    }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { display: false } } }
+});
+{% endif %}
+
+{% if genre_data %}
+new Chart(document.getElementById('genreChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ genre_data | map(attribute='genre_name') | list | tojson }},
+    datasets: [{
+      data: {{ genre_data | map(attribute='cnt') | list | tojson }},
+      backgroundColor: ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#ec4899'],
+      borderWidth: 0,
+      hoverOffset: 4
+    }]
+  },
+  options: {
+    cutout: '65%',
+    plugins: { legend: { display: false } }
+  }
+});
+{% endif %}
+</script>
+{% endblock %}
