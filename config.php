@@ -8,7 +8,7 @@ session_start();
 if (!defined('DB_HOST')) {
     define('DB_HOST', '127.0.0.1');
     define('DB_NAME', 'movie_watchlist');
-    define('DB_USER', 'root');
+    define('DB_USER', 'movie_user');
     define('DB_PASS', 'password');
 }
 
