@@ -26,7 +26,7 @@ INSERT INTO Movies (title, release_year, duration_mins, language, poster_url) VA
 ('The Dark Knight', 2008, 152, 'English', 'https://image.tmdb.org/t/p/w342/1hqwGsEchVmkD98THg2i0E90kK9.jpg'),
 ('Titanic', 1997, 194, 'English', 'https://image.tmdb.org/t/p/w342/9xjZS2ow8KwQwgeRv8JCkLMSXaG.jpg'),
 ('Avatar', 2009, 162, 'English', 'https://image.tmdb.org/t/p/w342/jRXYZsGMSLsllc32SCGT7ARAH4d.jpg'),
-('Gladiator', 2000, 155, 'English', 'https://image.tmdb.org/t/p/w342/owS8yM8r66aMwj/BiWMmonsLlz.jpg'),
+('Gladiator', 2000, 155, 'English', 'https://image.tmdb.org/t/p/w342/owS8yM8r66aMwj0e2M0bB3xZ7XU.jpg'),
 ('The Godfather', 1972, 175, 'English', 'https://image.tmdb.org/t/p/w342/3bhkrj58Vtu7enYsU5A1jVWUXwC.jpg'),
 ('The Lord of the Rings: The Fellowship of the Ring', 2001, 178, 'English', 'https://image.tmdb.org/t/p/w342/6oom5QYQ2IQrmJL225aA4GEYricext.jpg'),
 ('Avengers: Endgame', 2019, 181, 'English', 'https://image.tmdb.org/t/p/w342/or06FQrPadWVM7DmHeOn88mtjDP.jpg'),
@@ -35,7 +35,7 @@ INSERT INTO Movies (title, release_year, duration_mins, language, poster_url) VA
 ('Parasite', 2019, 132, 'Korean', 'https://image.tmdb.org/t/p/w342/7IizwVrtBWq5cVl7QwDmRedUVqQ.jpg'),
 ('Once Upon a Time in Hollywood', 2019, 161, 'English', 'https://image.tmdb.org/t/p/w342/ELy8eGXEd8e1rat7kUCWToKi89A.jpg'),
 ('Joker', 2019, 122, 'English', 'https://image.tmdb.org/t/p/w342/udDclMPFLuhnbPpF8p2JpjrHjj5.jpg'),
-('The Shining', 1980, 146, 'English', 'https://image.tmdb.org/t/p/w342/4zNcs5vkaf2jIvtisкъдето/2B8Oowsc0JH2AJINvJBVjp.jpg'),
+('The Shining', 1980, 146, 'English', 'https://image.tmdb.org/t/p/w342/4zNcs5vkaf2jIvtisKKKKKKKKKUU.jpg'),
 ('Fight Club', 1999, 139, 'English', 'https://image.tmdb.org/t/p/w342/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg');
 
 -- Link movies to genres (MovieGenres)
