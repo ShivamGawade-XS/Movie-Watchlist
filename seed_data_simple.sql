@@ -15,18 +15,18 @@ INSERT INTO Genres (genre_name) VALUES
 ('Romance'),
 ('Animation');
 
--- Insert sample movies
+-- Insert sample movies with real poster images
 INSERT INTO Movies (title, release_year, duration_mins, language, poster_url) VALUES
-('Inception', 2010, 148, 'English', 'https://via.placeholder.com/300x450?text=Inception'),
-('The Matrix', 1999, 136, 'English', 'https://via.placeholder.com/300x450?text=The+Matrix'),
-('Interstellar', 2014, 169, 'English', 'https://via.placeholder.com/300x450?text=Interstellar'),
-('The Shawshank Redemption', 1994, 142, 'English', 'https://via.placeholder.com/300x450?text=Shawshank'),
-('Pulp Fiction', 1994, 154, 'English', 'https://via.placeholder.com/300x450?text=Pulp+Fiction'),
-('Forrest Gump', 1994, 142, 'English', 'https://via.placeholder.com/300x450?text=Forrest+Gump'),
-('The Dark Knight', 2008, 152, 'English', 'https://via.placeholder.com/300x450?text=Dark+Knight'),
-('Titanic', 1997, 194, 'English', 'https://via.placeholder.com/300x450?text=Titanic'),
-('Avatar', 2009, 162, 'English', 'https://via.placeholder.com/300x450?text=Avatar'),
-('Gladiator', 2000, 155, 'English', 'https://via.placeholder.com/300x450?text=Gladiator');
+('Inception', 2010, 148, 'English', 'https://image.tmdb.org/t/p/w342/9gk7adHYeDMPS6QW4UJcstCA26_.jpg'),
+('The Matrix', 1999, 136, 'English', 'https://image.tmdb.org/t/p/w342/f89U3ADr1oMo21adPzmCgYi3V4t.jpg'),
+('Interstellar', 2014, 169, 'English', 'https://image.tmdb.org/t/p/w342/rAiY959THWwlBmYOeAete6YXP4O.jpg'),
+('The Shawshank Redemption', 1994, 142, 'English', 'https://image.tmdb.org/t/p/w342/lyQBXzA31QHaYkXWB6hnIX7K63s.jpg'),
+('Pulp Fiction', 1994, 154, 'English', 'https://image.tmdb.org/t/p/w342/dM2w4PZqPHG1efcccqAY9M89aZZ.jpg'),
+('Forrest Gump', 1994, 142, 'English', 'https://image.tmdb.org/t/p/w342/clnyhPqj1SNgpAdeSS6CmAERo4G.jpg'),
+('The Dark Knight', 2008, 152, 'English', 'https://image.tmdb.org/t/p/w342/1hqwGsEchVmkD98THg2i0E90kK9.jpg'),
+('Titanic', 1997, 194, 'English', 'https://image.tmdb.org/t/p/w342/9xjZS2ow8KwQwgeRv8JCkLMSXaG.jpg'),
+('Avatar', 2009, 162, 'English', 'https://image.tmdb.org/t/p/w342/jRXYZsGMSLsllc32SCGT7ARAH4d.jpg'),
+('Gladiator', 2000, 155, 'English', 'https://image.tmdb.org/t/p/w342/owS8yM8r66aMwj/BiWMmonsLlz.jpg');
 
 -- Link movies to genres (MovieGenres)
 INSERT INTO MovieGenres (movie_id, genre_id) VALUES
