@@ -80,16 +80,16 @@ include __DIR__ . '/partials/header.php';
 
     <div class="bg-[#111118] border border-[#1e1e2a] rounded-xl p-5">
       <h3 class="text-sm font-medium text-[#f0f0f8] mb-3">My Rating</h3>
-      <form action="rate.php" method="post" class="space-y-3">
+      <form action="rate.php" method="post" class="space-y-3" x-data="{ selected: <?= (int)($my_rating['score'] ?? 0) ?>, hovered: 0 }">
         <input type="hidden" name="movie_id" value="<?= $mid ?>" />
         <div class="flex items-center gap-1">
           <?php for ($i = 1; $i <= 10; $i++): ?>
-            <label class="cursor-pointer">
-              <input type="radio" name="score" value="<?= $i ?>" class="hidden" <?= (!empty($my_rating['score']) && $my_rating['score'] == $i) ? 'checked' : '' ?> />
-              <span class="text-lg hover:text-[#f59e0b] transition-colors <?= (!empty($my_rating['score']) && $my_rating['score'] >= $i) ? 'text-[#f59e0b]' : 'text-[#2a2a3a]' ?>">★</span>
+            <label class="cursor-pointer" @mouseenter="hovered = <?= $i ?>" @mouseleave="hovered = 0">
+              <input type="radio" name="score" value="<?= $i ?>" class="hidden" x-model="selected" :value="<?= $i ?>" <?= (!empty($my_rating['score']) && $my_rating['score'] == $i) ? 'checked' : '' ?> />
+              <span class="text-lg transition-colors" :class="(hovered ? hovered >= <?= $i ?> : selected >= <?= $i ?>) ? 'text-[#f59e0b]' : 'text-[#2a2a3a]'">★</span>
             </label>
           <?php endfor; ?>
-          <span class="text-xs text-[#4a4a5e] ml-2"><?= !empty($my_rating['score']) ? htmlspecialchars($my_rating['score']) . '/10' : 'Not rated' ?></span>
+          <span class="text-xs text-[#4a4a5e] ml-2" x-text="selected ? selected + '/10' : 'Not rated'"></span>
         </div>
         <button type="submit" class="bg-[#16161f] hover:bg-[#f59e0b22] border border-[#1e1e2a] hover:border-[#f59e0b44] text-[#c8c8d8] hover:text-[#f59e0b] text-sm px-4 py-1.5 rounded-lg transition-colors">Submit Rating</button>
       </form>
